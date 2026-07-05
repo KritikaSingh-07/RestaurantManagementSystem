@@ -4,7 +4,10 @@ import axios from "axios";
 // Base URL — in dev the Vite proxy rewrites /restaurant → http://localhost:5000
 // In production set VITE_API_URL accordingly.
 // ---------------------------------------------------------------------------
-const BASE_URL = `${import.meta.env.VITE_API_URL || ""}/restaurant/api/v1`;
+// Use the Vite dev proxy (same origin) unless an explicit API URL is set.
+const BASE_URL = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}/restaurant/api/v1`
+  : "/restaurant/api/v1";
 
 export const api = axios.create({
   baseURL: BASE_URL,
@@ -20,7 +23,8 @@ export const api = axios.create({
 api.interceptors.request.use((config) => {
   const token = sessionStorage.getItem("accessToken");
   if (token) {
-    config.headers["Authorization"] = `Bearer ${token}`;
+    config.headers = config.headers ?? ({} as any);
+    (config.headers as any)["Authorization"] = `Bearer ${token}`;
   }
   return config;
 });
@@ -34,9 +38,15 @@ api.interceptors.response.use(
     const status = error?.response?.status;
 
     if (status === 401) {
+      const requestUrl = error?.config?.url || "";
+      const isAuthRoute =
+        requestUrl.includes("/auth/user/login") ||
+        requestUrl.includes("/auth/user/register") ||
+        requestUrl.includes("/auth/user/me");
+
       sessionStorage.removeItem("accessToken");
 
-      if (window.location.pathname !== "/login") {
+      if (!isAuthRoute && window.location.pathname !== "/login") {
         window.location.href = "/login";
       }
     }
@@ -55,12 +65,12 @@ api.interceptors.response.use(
 // ---------------------------------------------------------------------------
 
 export const authApi = {
-  register: (p: any) => api.post("/auth/user/register", p),
-  login: (p: any) => api.post("/auth/user/login", p),
+  register: (p: unknown) => api.post("/auth/user/register", p),
+  login: (p: unknown) => api.post("/auth/user/login", p),
   logout: () => api.post("/auth/user/logout"),
   me: () => api.get("/auth/user/me"),
 
-  getAllUsers:()=> api.get("/auth/user/all-users"),
+  getAllUsers: () => api.get("/auth/user/all-users"),
 
   updateProfile: (data: { fullName?: string; phoneNumber?: string }) =>
     api.patch("/auth/user/update-profile", data, {
@@ -125,13 +135,13 @@ export const orderApi = {
 
   /** Table / dine-in order */
   createTableOrder: (payload: {
-    tableNo: string;
+    tableNo: number;
     specialNotes?: string;
-    items: { itemId: string; quantity: number }[],
-    date : string,
-    startTime : string,
-    endTime : string,
-    noOfGuest : number
+    items: { itemId: string; quantity: number }[];
+    date: string;
+    startTime: string;
+    endTime: string;
+    noOfGuest: number;
   }) => api.post("/order/add/table-order", payload),
 
   getUserOrders: () => api.get("/order/order-users"),
@@ -177,14 +187,12 @@ export const reservationApi = {
     reservationUserEmail?: string;
   }) => api.post("/reserve/new-reserve", payload),
 
- getAvailableTables: (payload: {
+  getAvailableTables: (payload: {
     noOfGuests: number;
     date: string;
     startTime: string;
     endTime: string;
   }) => api.post("/reserve/available-table", payload),
-
-
 
   updateStatus: (reservationId: string, payload: {
     tableNo?: number;

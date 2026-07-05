@@ -88,7 +88,7 @@ const AdminReservations = () => {
         `Time: ${to12hr(startTime)} - ${to12hr(endTime)}\n` +
         `Guests: ${reservation.guests}\n` +
         `Table: ${tableText}\n\n` +
-        `Thank you for choosing Athenura. We look forward to hosting you.\n`
+        `Thank you for choosing AlgoDine. We look forward to hosting you.\n`
     );
 
     window.open(`mailto:${reservation.email}?subject=${subject}&body=${body}`, "_blank");

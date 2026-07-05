@@ -85,6 +85,9 @@ const registerUser = asyncHandler(async(req,res)=>{
 
         //  await sendEmailVerifyUser(user.email, user.fullName, unHashedToken)
 
+          // Verification email is disabled; allow login after registration.
+          user.isEmailVerified = true;
+          await user.save({ validateBeforeSave: false });
 
       await removeRefreshTokenAndPassword(user._id)
 
@@ -100,13 +103,16 @@ const loginUser = asyncHandler(async(req,res)=>{
 
     const user = await User.findOne({email})
 
-
-    if(!user.isEmailVerified){
-      throw new ApiError(401, "User can't login beacuse user didn't verify")
-    }
-
     if(!user) {
       throw new ApiError(401, "User can't exist with this email")
+    }
+
+    if (!user.isEmailVerified) {
+      if (process.env.NODE_ENV === "production") {
+        throw new ApiError(401, "User can't login beacuse user didn't verify")
+      }
+      user.isEmailVerified = true;
+      await user.save({ validateBeforeSave: false });
     }
 
   const passwordValid = await user.isPasswordCorrect(password)
@@ -117,13 +123,13 @@ const loginUser = asyncHandler(async(req,res)=>{
 
   const { refreshToken, accessToken } = await generateAccessRefreshToken(user._id)
 
-  await User.findById(user._id).select("-password -refreshToken")
+  const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
 
   return res
   .status(200)
   .cookie("accessToken" , accessToken, option)
   .cookie("refreshToken" , refreshToken, option)
-  .json(new ApiResponse(200, user , `${user.role} logged in successfully`))
+  .json(new ApiResponse(200, { user: loggedInUser, accessToken }, `${user.role} logged in successfully`))
 })
 
 const logoutUser = asyncHandler(async(req,res)=>{

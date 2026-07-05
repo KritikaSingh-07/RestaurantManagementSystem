@@ -1,20 +1,49 @@
 import { Camera } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { menuApi } from "@/lib/api";
+import { galleryCategories as staticGalleryCategories, galleryItems as staticGalleryItems } from "@/data/menuData";
+
+type GalleryItem = { title: string; category: string; image: string };
 
 const GalleryPage = () => {
   const [activeFilter, setActiveFilter] = useState<string>("All");
-  const [menuData, setMenuData] = useState<any[]>([]);
+  const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
   const [loading, setLoading] = useState(true);
-
 
   useEffect(() => {
     const fetchMenu = async () => {
       try {
         const res = await menuApi.fetchAll();
-        setMenuData(res.data?.data || []);
+        const raw = (res as { data?: { data?: unknown } })?.data?.data ?? (res as { data?: unknown })?.data ?? [];
+
+        const mapped: GalleryItem[] = Array.isArray(raw)
+          ? raw
+              .map((item: unknown) => {
+                const it = item as {
+                  itemName?: unknown;
+                  name?: unknown;
+                  itemCategory?: unknown;
+                  category?: unknown;
+                  itemImage?: unknown;
+                  image?: unknown;
+                };
+
+                return {
+                  title: String(it?.itemName ?? it?.name ?? ""),
+                  category: String(it?.itemCategory ?? it?.category ?? ""),
+                  image: String(it?.itemImage ?? it?.image ?? ""),
+                };
+              })
+              .filter((g) => g.title && g.category)
+          : [];
+
+
+        // Backend-first, but never allow empty gallery.
+        const finalItems = mapped.length > 0 ? mapped : staticGalleryItems;
+        setGalleryItems(finalItems);
       } catch (err) {
-        console.error("Failed to fetch menu:", err);
+        console.error("Failed to fetch menu for gallery:", err);
+        setGalleryItems(staticGalleryItems);
       } finally {
         setLoading(false);
       }
@@ -23,18 +52,15 @@ const GalleryPage = () => {
     fetchMenu();
   }, []);
 
+  const galleryCategories = useMemo(
+    () => [...new Set(galleryItems.map((item) => item.category))],
+    [galleryItems]
+  );
 
-  const galleryItems = menuData.map((item) => ({
-    title: item.itemName,
-    category: item.itemCategory,
-    image: item.itemImage,
-  }));
-
-  const galleryCategories = [
-    ...new Set(menuData.map((item) => item.itemCategory)),
-  ];
-
-  const allCategories = ["All", ...galleryCategories];
+  const allCategories = useMemo(
+    () => ["All", ...(galleryCategories.length ? galleryCategories : staticGalleryCategories)],
+    [galleryCategories]
+  );
 
   const filteredItems =
     activeFilter === "All"
@@ -43,7 +69,7 @@ const GalleryPage = () => {
 
   const sections =
     activeFilter === "All"
-      ? galleryCategories
+      ? (galleryCategories.length ? galleryCategories : staticGalleryCategories)
           .map((cat) => ({
             cat,
             items: galleryItems.filter((g) => g.category === cat),
@@ -51,8 +77,23 @@ const GalleryPage = () => {
           .filter((s) => s.items.length > 0)
       : [{ cat: activeFilter, items: filteredItems }];
 
-
-  if (loading) return null;
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-background">
+        <div className="container py-20">
+          <div className="h-10 w-56 bg-muted rounded-md animate-pulse mb-10" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {[...Array(9)].map((_, i) => (
+              <div key={i} className="rounded-2xl overflow-hidden bg-muted animate-pulse">
+                <div className="aspect-[4/3] bg-muted" />
+                <div className="h-14 bg-muted/60" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-background">
@@ -93,9 +134,7 @@ const GalleryPage = () => {
               >
                 {cat}
                 {cat === "All" && (
-                  <span className="ml-1.5 text-xs opacity-70">
-                    ({galleryItems.length})
-                  </span>
+                  <span className="ml-1.5 text-xs opacity-70">({galleryItems.length})</span>
                 )}
               </button>
             ))}
@@ -113,18 +152,59 @@ const GalleryPage = () => {
       </section>
 
       {/* Gallery Content */}
-      <div className="container py-12 space-y-16">
+      <div className="container py-10 space-y-16">
+        {/* Extra lead section so gallery looks fuller */}
+        <section className="scroll-mt-28">
+          <div className="flex items-center gap-4 mb-8 animate-fade-in-up">
+            <div className="p-3 rounded-xl bg-primary/10">
+              <Camera className="w-5 h-5 text-primary" />
+            </div>
+
+            <div>
+              <h2 className="font-display text-2xl md:text-3xl font-bold">Featured Moments</h2>
+              <p className="font-body text-sm text-muted-foreground">
+                A quick highlight reel from our kitchen.
+              </p>
+            </div>
+
+            <div className="flex-1 h-px bg-border ml-4" />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {galleryItems.slice(0, 8).map((item, idx) => (
+              <div
+                key={`${item.title}-${idx}`}
+                className="group relative rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow"
+              >
+                <div className="aspect-[4/3] overflow-hidden">
+                  <img
+                    src={item.image}
+                    alt={item.title}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                    loading="lazy"
+                  />
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end">
+                  <div className="p-4 w-full">
+                    <p className="font-display text-sm font-bold text-white line-clamp-1">{item.title}</p>
+                    <span className="font-body text-[11px] text-white/70">{item.category}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
         {sections.map(({ cat, items }) => (
           <section key={cat} className="scroll-mt-28">
             <div className="flex items-center gap-4 mb-8 animate-fade-in-up">
+
               <div className="p-3 rounded-xl bg-primary/10">
                 <Camera className="w-5 h-5 text-primary" />
               </div>
 
               <div>
-                <h2 className="font-display text-2xl md:text-3xl font-bold">
-                  {cat}
-                </h2>
+                <h2 className="font-display text-2xl md:text-3xl font-bold">{cat}</h2>
                 <p className="font-body text-sm text-muted-foreground">
                   {items.length} {items.length === 1 ? "photo" : "photos"}
                 </p>
@@ -153,12 +233,8 @@ const GalleryPage = () => {
 
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/0 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end">
                     <div className="p-5 w-full">
-                      <p className="font-display text-lg font-bold text-white">
-                        {item.title}
-                      </p>
-                      <span className="font-body text-xs text-white/70">
-                        {item.category}
-                      </span>
+                      <p className="font-display text-lg font-bold text-white">{item.title}</p>
+                      <span className="font-body text-xs text-white/70">{item.category}</span>
                     </div>
                   </div>
                 </div>
@@ -172,3 +248,4 @@ const GalleryPage = () => {
 };
 
 export default GalleryPage;
+

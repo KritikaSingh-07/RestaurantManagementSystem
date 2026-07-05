@@ -1,3 +1,4 @@
+import { useAuth } from "@/context/AuthContext";
 import React, {
   createContext,
   useContext,
@@ -6,8 +7,10 @@ import React, {
   useEffect,
   useRef,
 } from "react";
-import { orderApi, paymentApi } from "@/lib/api";
-import { useAuth } from "@/context/AuthContext";
+
+import { orderApi, paymentApi, reservationApi } from "@/lib/api";
+
+
 
 export interface TableOrderItem {
   id: string;
@@ -86,11 +89,12 @@ function mapBackendToTableOrder(raw: Record<string, unknown>): TableOrder | null
   }
 
   // Map status from backend format to frontend format
+  // Backend orderStatus values: PENDING | Preparing | Ready | Completed | Cancelled (see constants.js)
+  // Backend also stores activeOrder boolean for active tracking.
   const statusMap: Record<string, TableOrder["status"]> = {
     pending: "pending",
     preparing: "preparing",
     ready: "served",
-    delivered: "completed",
     completed: "completed",
     cancelled: "cancelled",
     active: "active",
@@ -145,6 +149,11 @@ export const TableOrderProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // Fetch table orders from backend
   const fetchTableOrders = useCallback(async (forceRefresh = false) => {
+    if (!user) {
+      setTableOrders([]);
+      return;
+    }
+
     // Return cached data if valid and not forcing refresh
     if (!forceRefresh && isCacheValid() && cacheRef.current) {
       setTableOrders(cacheRef.current.data);
@@ -254,19 +263,25 @@ export const TableOrderProvider: React.FC<{ children: React.ReactNode }> = ({
       let newOrder: TableOrder;
 
       try {
-        const res = await orderApi.createTableOrder({
+        // Backend expects: { tableNo, items[{itemId, quantity}], date, startTime, endTime, noOfGuest, typeOfOrder?, specialNotes? }
+        // It validates and calculates totalAmount server-side.
+        const payload = {
           typeOfOrder: "Table Order",
           tableNo: data.tableNumber,
           date: data.date,
           startTime: data.startTime,
           endTime: data.endTime,
           noOfGuest: data.noOfGuests,
-          specialNotes: data.notes || undefined,
+          specialNotes: data.notes || "",
           items: data.items.map((i) => ({
             itemId: i.id,
             quantity: i.qty,
           })),
-        });
+        };
+
+        console.log("createTableOrder payload", payload);
+
+        const res = await orderApi.createTableOrder(payload);
 
         const raw = res.data?.data ?? res.data;
 
@@ -327,14 +342,16 @@ export const TableOrderProvider: React.FC<{ children: React.ReactNode }> = ({
     async (orderId: string, status: TableOrder["status"]) => {
       setError(null);
 
-      // Map frontend status to backend status
+      // Backend status enum values: PENDING | Preparing | Ready | Completed | Cancelled
+      // (Active tracking is handled via activeOrder boolean, not orderStatus.)
       const statusMap: Record<string, string> = {
-        pending: "Pending",
+        pending: "PENDING",
         preparing: "Preparing",
         served: "Ready",
         completed: "Completed",
         cancelled: "Cancelled",
-        active: "Active"
+        active: "Preparing",
+        "in-progress": "Preparing",
       };
 
       // Optimistic update

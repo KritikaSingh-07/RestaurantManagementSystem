@@ -70,15 +70,17 @@ const Header = () => {
         <Link
           to="/"
           className="flex items-center group"
-          aria-label="Athenura Home"
+          aria-label="AlgoDine Home"
         >
-          <img
-            src="/Athenura%20logo.png"
-            alt="Athenura"
+          {/* { <img
+            src="/AlgoDinelogo.png"
+            alt="AlgoDine"
             className={`w-auto object-contain transition-all duration-500 group-hover:scale-105 ${
               scrolled ? "h-8 md:h-10" : "h-10 md:h-12"
             }`}
-          />
+           /> }    */}
+
+           <h1 className="gradient-text font-display text-5xl md:text-6xl lg:text-3xl font-bold text-secondary-foreground mb-2 animate-fade-in-up"> AlgoDine</h1>
         </Link>
 
         {/* Desktop Nav */}

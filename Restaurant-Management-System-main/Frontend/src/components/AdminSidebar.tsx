@@ -53,7 +53,8 @@ export function AdminSidebar() {
         {isMobile && (
           <div className="flex items-center justify-between p-4 border-b border-orange-200/70 bg-white/95 backdrop-blur-sm">
             <div className="flex items-center gap-2">
-              <img src="/Athenura%20logo.png" alt="Athenura" className="h-7 w-auto object-contain" />
+              {/* <img src="/AlgoDine%20logo.png" alt="AlgoDine" className="h-7 w-auto object-contain" /> */}
+               <h1 className="gradient-text font-display text-5xl md:text-5xl lg:text-6xl font-bold text-secondary-foreground mb-2 animate-fade-in-up"> AlgoDine</h1>
               <h2 className="font-display text-base font-bold">Admin</h2>
             </div>
             <button
@@ -71,7 +72,8 @@ export function AdminSidebar() {
           <div className="px-3 mb-4">
             <div className="rounded-2xl border border-orange-200 bg-gradient-to-r from-orange-100/70 via-orange-50/70 to-white p-4">
               <p className="font-body text-[10px] tracking-[0.18em] uppercase text-orange-700">Control Center</p>
-              <img src="/Athenura%20logo.png" alt="Athenura" className="h-8 w-auto object-contain mt-1" />
+              {/* <img src="/AlgoDine%20logo.png" alt="AlgoDine" className="h-8 w-auto object-contain mt-1" /> */}
+               <h1 className="gradient-text font-display text-5xl md:text-5xl lg:text-3xl font-bold text-secondary-foreground mb-2 animate-fade-in-up"> AlgoDine</h1>
               <h2 className="font-display text-sm font-bold mt-2">Admin Panel</h2>
               <p className="font-body text-xs text-muted-foreground mt-1 truncate">{user?.name}</p>
             </div>

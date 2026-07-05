@@ -106,7 +106,7 @@ export const emailService = async (
         email: email,
         name: name
       }],
-      subject: `${status === 'Confirm' ? '✅' : '❌'} Reservation ${status} - Table ${tableNo} | Athenura`,
+      subject: `${status === 'Confirm' ? '✅' : '❌'} Reservation ${status} - Table ${tableNo} | AlgoDine`,
 
       htmlContent: `
       <!DOCTYPE html>
@@ -114,7 +114,7 @@ export const emailService = async (
       <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Reservation ${status} - Athenura</title>
+        <title>Reservation ${status} - AlgoDine</title>
         <style>
           * {
             margin: 0;
@@ -432,17 +432,17 @@ export const emailService = async (
           </div>
 
           <div class="footer">
-            <div class="footer-logo">✨ Athenura ✨</div>
+            <div class="footer-logo">✨ AlgoDine ✨</div>
             <div class="footer-text">
               Fine Dining Experience<br />
-              ${new Date().getFullYear()} Athenura. All rights reserved.
+              ${new Date().getFullYear()} AlgoDine. All rights reserved.
             </div>
             <div class="social-links">
               <span>📧</span> <span>📱</span> <span>📍</span>
             </div>
             <div class="footer-text" style="margin-top: 16px; font-size: 11px;">
               This is an automated email, please do not reply.<br />
-              For assistance, contact us at support@athenura.com
+              For assistance, contact us at support@AlgoDine.com
             </div>
           </div>
         </div>
@@ -454,7 +454,7 @@ export const emailService = async (
 
       headers: {
         'X-Priority': status === 'Confirm' ? '1 (Highest)' : '3 (Normal)',
-        'X-Mailer': 'Athenura-Reservation-System',
+        'X-Mailer': 'AlgoDine-Reservation-System',
         'X-Reservation-ID': reservationId || 'N/A'
       }
     };
@@ -566,7 +566,7 @@ export const sendEmailVerifyUser = async (
         },
       ],
 
-      subject: "🔐 Verify your email - Athenura",
+      subject: "🔐 Verify your email - AlgoDine",
 
       htmlContent: `
       <!DOCTYPE html>
@@ -606,7 +606,7 @@ export const sendEmailVerifyUser = async (
       tags: ["Auth", "VerifyEmail"],
 
       headers: {
-        "X-Mailer": "Athenura-Auth-System",
+        "X-Mailer": "AlgoDine-Auth-System",
       },
     };
 

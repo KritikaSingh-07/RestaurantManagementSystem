@@ -71,6 +71,7 @@ interface OrderContextType {
   cancelReservation: (reservationId: string) => Promise<void>;
   getReservationSummary: () => Promise<Record<string, number>>;
   refreshData: () => Promise<void>;
+ getUserOrders: (userId: string) => Order[];
 }
 
 const OrderContext = createContext<OrderContextType | undefined>(undefined);
@@ -296,23 +297,28 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({
       try {
         let res;
         if (isDelivery) {
+          // Backend validation requires:
+          // - address: non-empty string
+          // - items: non-empty array
+          // - items.*.itemId: valid Mongo ObjectId
+          // - items.*.quantity: int >= 1
           res = await orderApi.createHomeDelivery({
             typeOfOrder: "Home Delivery",
             items: orderData.items.map((i) => ({
               itemId: i.id,
-              quantity: i.qty,
+              quantity: Math.max(1, Math.floor(Number(i.qty))),
             })),
-            address: orderData.contact.address,
+            address: String(orderData.contact.address || ""),
           });
         } else {
-          // For dine-in/takeaway
+        // For dine-in/takeaway
           res = await orderApi.createHomeDelivery({
             typeOfOrder: "Takeaway",
             items: orderData.items.map((i) => ({
               itemId: i.id,
-              quantity: i.qty,
+              quantity: Math.max(1, Math.floor(Number(i.qty))),
             })),
-            address: orderData.contact.address || "",
+            address: String(orderData.contact.address || ""),
           });
         }
 
@@ -587,7 +593,12 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 
   const getUserOrders = useCallback(
-    (userId: string) => orders.filter((o) => o.userId === userId),
+    async (userId: string) => {
+      // Some backend responses may return userId in different shapes.
+      // Normalize to string to ensure filtering works reliably.
+      const safeUserId = String(userId);
+      return orders.filter((o) => String(o.userId) === safeUserId);
+    },
     [orders]
   );
 

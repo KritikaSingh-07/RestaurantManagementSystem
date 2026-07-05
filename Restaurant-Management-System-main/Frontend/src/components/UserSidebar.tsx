@@ -48,9 +48,10 @@ export function UserSidebar() {
     >
       <SidebarHeader>
         {isMobile && (
-          <div className="flex items-center justify-between p-4 border-b border-orange-200/70 bg-white/95 backdrop-blur-sm">
+          <div className="flex items-center justify-between p-4 border-b mh-10 border-orange-200/70 bg-white/95 backdrop-blur-sm">
             <div className="flex items-center gap-2">
-              <img src="/Athenura%20logo.png" alt="Athenura" className="h-7 w-auto object-contain" />
+              {/* <img src="/AlgoDine%20logo.png" alt="AlgoDine" className="h-7 w-auto object-contain" /> */}
+               <h1 className=" gradient-text font-display text-5xl md:text-5xl lg:text-xl font-bold text-secondary-foreground mb-2 animate-fade-in-up"> AlgoDine</h1>
               <h2 className="font-display text-base font-bold">My Account</h2>
             </div>
             <button
@@ -68,7 +69,7 @@ export function UserSidebar() {
           <div className="px-3 mb-4">
             <div className="rounded-2xl border border-orange-200 bg-gradient-to-r from-orange-100/70 via-orange-50/70 to-white p-4">
               <p className="font-body text-[10px] tracking-[0.18em] uppercase text-orange-700">Welcome Back</p>
-              <h2 className="font-display text-lg font-bold mt-1">My Account</h2>
+              <h2 className="font-display text-lg font-bold mt-5">My Account</h2>
               <p className="font-body text-xs text-muted-foreground mt-1 truncate">{user?.name}</p>
             </div>
           </div>

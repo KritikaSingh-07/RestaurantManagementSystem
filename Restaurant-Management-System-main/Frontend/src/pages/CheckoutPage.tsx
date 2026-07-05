@@ -344,7 +344,7 @@ const CheckoutPage = () => {
           key: import.meta.env.VITE_RAZORPAY_KEY_ID || "",
           amount: totalPrice * 100,
           currency: "INR",
-          name: "Athenura Restaurant",
+          name: "AlgoDine Restaurant",
           description: `Order #${order.id}`,
           order_id: payment,
           handler: async function (response: any) {

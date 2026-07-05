@@ -53,7 +53,8 @@ const Footer = () => {
       <div className="container pt-16 pb-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10">
         {/* Brand */}
         <div className="sm:col-span-2 lg:col-span-1">
-          <img src="/athenurawhitelogo.png" alt="Athenura" className="h-14 w-auto object-contain mb-4" />
+          {/* <img src="/AlgoDinewhitelogo.png" alt="AlgoDine" className="h-14 w-auto object-contain mb-4" /> */}
+           <h1 className="gradient-text font-display text-5xl md:text-5xl lg:text-4xl font-bold text-secondary-foreground mb-2 animate-fade-in-up"> AlgoDine</h1>
           <p className="font-body text-sm text-secondary-foreground/65 leading-relaxed mb-6">
             A culinary experience that blends tradition with innovation. Every dish tells a story of passion and flavor.
           </p>
@@ -137,7 +138,7 @@ const Footer = () => {
             {[
               { icon: MapPin, text: "123 Flavor Street, Bandra West, Mumbai 400050" },
               { icon: Phone, text: "+91 98765 43210" },
-              { icon: Mail, text: "hello@athenura.in" },
+              { icon: Mail, text: "hello@AlgoDine.in" },
             ].map(({ icon: Icon, text }) => (
               <div key={text} className="flex items-start gap-3">
                 <div className="w-7 h-7 rounded-lg bg-primary/20 flex items-center justify-center shrink-0 mt-0.5">
@@ -154,7 +155,7 @@ const Footer = () => {
       <div className="border-t border-secondary-foreground/10">
         <div className="container py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="font-body text-xs text-secondary-foreground/40">
-            © 2026 Athenura Restaurant. All rights reserved.
+            © 2026 AlgoDine Restaurant. All rights reserved.
           </p>
           <div className="flex items-center gap-4">
             {socialLinks.map((s) => (

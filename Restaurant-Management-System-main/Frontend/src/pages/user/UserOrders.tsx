@@ -5,8 +5,8 @@ import { useTableOrders, type TableOrder, type TableOrderItem } from "@/context/
 import { X, Package, Pencil, Trash2, UtensilsCrossed, Minus, Plus, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -58,13 +58,16 @@ const UserOrders = () => {
   const prevUserOrdersRef = useRef<Order[]>([]);
 
   // Separate function to get online orders
-  const getOnlineOrders = useCallback(() => {
+  const getOnlineOrders = useCallback(async () => {
     if (!user) return [];
-    const allOrders = getUserOrders(user.id);
-    return allOrders.filter(o =>
-      String(o.orderType || "Home Delivery").toLowerCase() === "home delivery"
-    );
+    const allOrders = await getUserOrders(user.id);
+    return Array.isArray(allOrders)
+      ? allOrders.filter((o) =>
+          String(o.orderType || "Home Delivery").toLowerCase() === "home delivery"
+        )
+      : [];
   }, [user, getUserOrders]);
+
 
   // Separate function to get table orders
   const getTableOrders = useCallback(() => {
@@ -73,13 +76,13 @@ const UserOrders = () => {
   }, [user, tableOrders]);
 
   // Function to refresh all order data - only called manually or on specific events
-  const refreshAllOrders = useCallback(() => {
+  const refreshAllOrders = useCallback(async () => {
     if (!user) return;
 
     setIsRefreshing(true);
 
     // Get fresh data
-    const newOnlineOrders = getOnlineOrders();
+    const newOnlineOrders = await getOnlineOrders();
     const newTableOrders = getTableOrders();
 
     setOrders(newOnlineOrders);
@@ -88,19 +91,22 @@ const UserOrders = () => {
     setIsRefreshing(false);
   }, [user, getOnlineOrders, getTableOrders]);
 
-  console.log("UserTableOrders", userTableOrders)
 
-  userTableOrders.map((item)=>{
-        console.log(item)
-  })
+  // console.log("UserTableOrders", userTableOrders)
+
+  // userTableOrders.map((item)=>{
+  //       console.log(item)
+  // })
 
   // Initial load only - runs once
   useEffect(() => {
     if (user && !hasLoadedRef.current) {
-      refreshAllOrders();
-      hasLoadedRef.current = true;
+      refreshAllOrders().finally(() => {
+        hasLoadedRef.current = true;
+      });
     }
   }, [user, refreshAllOrders]);
+
 
   // Listen only for specific events that require refresh (user actions)
   useEffect(() => {
@@ -480,12 +486,13 @@ const UserOrders = () => {
 
             <div>
               <label className="font-body text-sm font-semibold mb-1 block">Special Notes</label>
-              <Textarea
+              <Input
                 value={editNotes}
                 onChange={(e) => setEditNotes(e.target.value)}
                 placeholder="Any special requests..."
                 className="font-body"
               />
+
             </div>
 
             <div>

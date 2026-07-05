@@ -4,7 +4,15 @@ configDotenv({
 })
 
 export const port = process.env.PORT
-export const corsOrigin = String(process.env.CORS_ORIGIN)
+// CORS origin MUST NOT be "*" when credentials (cookies/auth) are used.
+// Fall back to localhost:8080 in dev if env is missing or misconfigured.
+const rawCorsOrigin = process.env.CORS_ORIGIN
+export const corsOrigin =
+  rawCorsOrigin && String(rawCorsOrigin).trim() !== "*"
+    ? String(rawCorsOrigin).trim()
+    : "http://localhost:8080"
+
+
 export const defaultRouter = String(process.env.DEAFULT_ROUTE)
 export const adminKey = String(process.env.ADMIN_SUPER_KEY)
 export const mongoDBURL = String(process.env.MONGODB_URI)

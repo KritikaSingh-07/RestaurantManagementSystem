@@ -11,19 +11,16 @@ const reservationSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      index: true,
     },
     userEmail: {
       type: String,
       required: true,
       trim: true,
-      index: true,
     },
     tableId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Table",
       required: true,
-      index: true,
     },
     phoneNumber: {
       type: String,

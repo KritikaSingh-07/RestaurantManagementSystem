@@ -82,11 +82,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return mappedUser;
       }
     } catch (error) {
-      console.error("Failed to fetch user:", error);
-      if (error instanceof Error && error.message.includes("401")) {
-        setUser(null);
-        sessionStorage.removeItem("accessToken");
+      const message = error instanceof Error ? error.message : "";
+      const isExpectedUnauth =
+        message.includes("Unauthorized") || message.includes("401");
+
+      if (!isExpectedUnauth) {
+        console.error("Failed to fetch user:", error);
       }
+
+      setUser(null);
+      sessionStorage.removeItem("accessToken");
     }
     return null;
   }, []);
@@ -108,10 +113,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         sessionStorage.setItem("accessToken", raw.accessToken);
       }
 
-      if (raw?.user) {
-        setUser(mapUser(raw.user));
-      } else if (raw?.email) {
-        setUser(mapUser(raw));
+      const userData = raw?.user ?? (raw?.email ? raw : null);
+      if (userData) {
+        setUser(mapUser(userData));
+      } else {
+        await refreshUser();
       }
 
       toast.success("Login successful!");
@@ -119,7 +125,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       toast.error(error.message || "Login failed");
       throw error;
     }
-  }, []);
+  }, [refreshUser]);
 
   const signup = useCallback(async (payload: any) => {
     try {
